@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function loadUsers() {
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/user',
+                    success: function(response) {
+                        $('#user-table').empty();
+
+                        response.forEach(function(user) {
+                            var row = '<tr>' +
+                                '<td>' + user.id + '</td>' +
+                                '<td>' + user.username + '</td>' +
+                                '<td>' +
+                                '<form class="update-account-form">' +
+                                '<input type="hidden" name="user_id" value="' + user.id + '">' +
+                                '<select name="account_type">' +
+                                '<option value="admin" ' + (user.account_type === 'admin' ? 'selected' : '') + '>Admin</option>' +
+                                '<option value="teacher" ' + (user.account_type === 'teacher' ? 'selected' : '') + '>Teacher</option>' +
+                                '<option value="student" ' + (user.account_type === 'student' ? 'selected' : '') + '>Student</option>' +
+                                '</select>' +
+                                '<input type="submit" value="Update">' +
+                                '</form>' +
+                                '</td>' +
+                                '<td>' +
+                                '<form class="update-password-form">' +
+                                '<input type="hidden" name="user_id" value="' + user.id + '">' +
+                                '<input type="password" name="password" placeholder="New Password" required>' +
+                                '<input type="submit" value="Change Password">' +
+                                '</form>' +
+                                '</td>' +
+                                '<td>' +
+                                '<form class="delete-user-form" onsubmit="return confirm(\'Are you sure?\')">' +
+                                '<input type="hidden" name="user_id" value="' + user.id + '">' +
+                                '<input type="submit" value="Delete">' +
+                                '</form>' +
+                                '</td>' +
+                                '</tr>';
+
+                            $('#user-table').append(row);
+                        });
+
+                        $('.update-account-form').submit(function(event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            var form = $(this);
+                            var formData = {
+                                user_id: form.find('input[name="user_id"]').val(),
+                                account_type: form.find('select[name="account_type"]').val()
+                            };
+
+                            $.ajax({
+                                type: 'PUT',
+                                url: '/api/user/' + formData.user_id,
+                                data: JSON.stringify(formData),
+                                contentType: 'application/json',
+                                success: function(response) {
+                                    loadUsers();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error(xhr.responseText);
+                                }
+                            });
+                        });
+
+                        $('.update-password-form').submit(function(event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            var form = $(this);
+                            var formData = {
+                                user_id: form.find('input[name="user_id"]').val(),
+                                password: form.find('input[name="password"]').val()
+                            };
+
+                            $.ajax({
+                                type: 'PUT',
+                                url: '/api/user/' + formData.user_id + '/password',
+                                data: JSON.stringify(formData),
+                                contentType: 'application/json',
+                                success: function(response) {
+                                    loadUsers();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error(xhr.responseText);
+                                }
+                            });
+                        });
+
+                        $('.delete-user-form').submit(function(event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            var form = $(this);
+                            var formData = {
+                                user_id: form.find('input[name="user_id"]').val()
+                            };
+
+                            $.ajax({
+                                type: 'DELETE',
+                                url: '/api/user/' + formData.user_id,
+                                success: function(response) {
+                                    loadUsers();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error(xhr.responseText);
+                                }
+                            });
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+
+            $('#create-user-form').submit(function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                var form = $(this);
+                var formData = {
+                    username: form.find('input[name="username"]').val(),
+                    password: form.find('input[name="password"]').val(),
+                    account_type: form.find('select[name="account_type"]').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/user',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        loadUsers();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            loadUsers();
+        });
+    </script>
+</head>
+<body>
+    <h1>Admin Panel</h1>
+    <form id="create-user-form">
+        <h2>Create User</h2>
+        <input type="text" name="username" placeholder="Username" required><br>
+        <input type="password" name="password" placeholder="Password" required><br>
+        <select name="account_type" required>
+            <option value="admin">Admin</option>
+            <option value="teacher">Teacher</option>
+            <option value="student">Student</option>
+        </select><br>
+        <input type="submit" value="Create User">
+    </form>
+
+    <hr>
+
+    <h2>Manage Users</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Account Type</th>
+            <th>Actions</th>
+            <th>Delete</th>
+        </tr>
+        <tbody id="user-table"></tbody>
+    </table>
+</body>
+</html>

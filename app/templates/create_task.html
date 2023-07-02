@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Создать задачу</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='jquery-3.6.0.min.js') }}"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        form {
+            background-color: #2b2b2b;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        form textarea {
+            width: 94%;
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #eee;
+        }
+
+        form input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        form input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+            $('#create-form').submit(function(event) {
+                event.preventDefault();
+
+                var requestData = {
+                    'title': $('#title').val(),
+                    'description': $('#description').val(),
+                    'inputs': $('#inputs').val(),
+                    'outputs': $('#outputs').val(),
+                    'hidden_inputs': $('#hidden_inputs').val(),
+                    'hidden_outputs': $('#hidden_outputs').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/create_task',
+                    data: JSON.stringify(requestData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        window.location.href = "{{ url_for('dashboard') }}";
+                    },
+                    error: function(xhr, status, error) {
+                        $('#message').text("Error");
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+
+            document.getElementById('create-form').addEventListener('submit', function(event) {
+                var inputs = document.getElementById('inputs').value;
+                var outputs = document.getElementById('outputs').value;
+                var hiddenInputs = document.getElementById('hidden_inputs').value;
+                var hiddenOutputs = document.getElementById('hidden_outputs').value;
+              
+                if ((inputs && !outputs) || (!inputs && outputs)) {
+                  event.preventDefault();
+                  alert('Если вы ввели входные данные, необходимо ввести выходные данные и наоборот.');
+                }
+              
+                if ((hiddenInputs && !hiddenOutputs) || (!hiddenInputs && hiddenOutputs)) {
+                  event.preventDefault();
+                  alert('Если вы ввели скрытые входные данные, необходимо ввести скрытые выходные данные и наоборот.');
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Создать задачу</h1>
+    <a href="/">Все задачи</a>
+    <br>
+    <br>
+    <form id="create-form">
+        <label for="title">Название задачи:</label><br>
+        <textarea id="title" name="title" rows="5" cols="50"></textarea><br><br>
+
+        <label for="description">Описание задачи:</label><br>
+        <textarea id="description" name="description" rows="5" cols="50" required></textarea><br><br>
+        
+        <label for="inputs">Публичные входы:</label><br>
+        <textarea id="inputs" name="inputs" rows="5" cols="50" required></textarea><br><br>
+        
+        <label for="outputs">Публичные выходы:</label><br>
+        <textarea id="outputs" name="outputs" rows="5" cols="50" required></textarea><br><br>
+        
+        <label for="hidden_inputs">Скрытые входы:</label><br>
+        <textarea id="hidden_inputs" name="hidden_inputs" rows="5" cols="50"></textarea><br><br>
+        
+        <label for="hidden_outputs">Скрытые выходы:</label><br>
+        <textarea id="hidden_outputs" name="hidden_outputs" rows="5" cols="50"></textarea><br><br>
+        
+        <input type="submit" value="Создать задачу">
+    </form>
+</body>
+</html>

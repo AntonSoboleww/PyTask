@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Register</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='jquery-3.6.0.min.js') }}"></script>
+    <style>
+        body {
+            background-color: #222;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            margin-top: 5px;
+        }
+
+        p {
+            text-align: center;
+            margin-top: 45px;
+            margin-bottom: 5px;
+        }
+
+        form {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            padding: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            border: 1px solid #777;
+            border-radius: 3px;
+            background-color: #555;
+            color: #fff;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 8px 12px;
+            margin-top: 20px;
+            background-color: #4caf50;
+            border: none;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 12px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <form method="POST" id="registration-form" action="{{ url_for('register') }}">
+        {{ form.csrf_token }}
+        <h1>Register</h1>
+        <p id="error-message" class="error-message"></p>
+        <input type="text" name="username" placeholder="Username" autocomplete="off" required><br>
+        <input type="password" name="password" placeholder="Password" autocomplete="off" required><br>
+        <input type="password" name="confirm_password" placeholder="Confirm Password" autocomplete="off" required><br>
+        <input type="submit" value="Register">
+        <p><a href="{{ url_for('login') }}">Login</a></p>
+    </form>
+
+    <script>
+        var csrfToken = document.querySelector('meta[name=csrf-token]').content;
+    
+        $('#registration-form').on('submit', function(event) {
+            event.preventDefault();
+        
+            var formData = new FormData(this);
+            var jsonData = {};
+            for (var pair of formData.entries()) {
+                jsonData[pair[0]] = pair[1];
+            }
+        
+            $.ajax({
+                url: '{{ url_for('register') }}',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                data: JSON.stringify(jsonData),
+                success: function(response) {
+                    if (response.redirect_url) {
+                        window.location.href = response.redirect_url;
+                    } else if (response.error) {
+                        console.error(response.error);
+                        $('#error-message').text(response.error);
+                    } else {
+                        console.error('Failed to get redirect URL.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Request failed. Status:', xhr.status);
+                }
+            });
+        });
+    </script>    
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% if current_user.id != task.creator_id and current_user.account_type != 'admin' %}
+        <meta http-equiv="refresh" content="0; URL={{ url_for('dashboard') }}">
+    {% endif %}
+    <title>Редактировать задачу</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='jquery-3.6.0.min.js') }}"></script>
+    {% if current_user.id != task.creator_id and current_user.account_type != 'admin' %}
+        <script>
+            window.location.href = "{{ url_for('dashboard') }}";
+        </script>
+    {% endif %}
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        form {
+            background-color: #2b2b2b;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        form textarea {
+            width: 94%;
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #eee;
+        }
+
+        form input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        form input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 35px;
+            margin-bottom: 35px;
+            font-size: 18px;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+            $('#edit-form').submit(function(event) {
+                event.preventDefault();
+
+                var requestData = {
+                    'title': $('#title').val(),
+                    'description': $('#description').val(),
+                    'inputs': $('#inputs').val(),
+                    'outputs': $('#outputs').val(),
+                    'hidden_inputs': $('#hidden_inputs').val(),
+                    'hidden_outputs': $('#hidden_outputs').val()
+                };
+
+                $.ajax({
+                    type: 'UPDATE',
+                    url: '/api/edit_task/{{ task.id }}',
+                    data: JSON.stringify(requestData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        var message = response.message;
+                        var dashboardLink = '<a href="{{ url_for('dashboard') }}">Вернуться на главную</a>';
+                        $('#message').html(message + '\n' + dashboardLink);
+                    },
+                    error: function(xhr, status, error) {
+                        $('#message').text("Error");
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+
+            document.getElementById('create-form').addEventListener('submit', function(event) {
+                var inputs = document.getElementById('inputs').value;
+                var outputs = document.getElementById('outputs').value;
+                var hiddenInputs = document.getElementById('hidden_inputs').value;
+                var hiddenOutputs = document.getElementById('hidden_outputs').value;
+              
+                if ((inputs && !outputs) || (!inputs && outputs)) {
+                  event.preventDefault();
+                  alert('Если вы ввели входные данные, необходимо ввести выходные данные и наоборот.');
+                }
+              
+                if ((hiddenInputs && !hiddenOutputs) || (!hiddenInputs && hiddenOutputs)) {
+                  event.preventDefault();
+                  alert('Если вы ввели скрытые входные данные, необходимо ввести скрытые выходные данные и наоборот.');
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Редактировать задачу</h1>
+    <a href="/">Все задачи</a>
+    <pre id="message" class="message"></pre>
+    <form id="edit-form">
+        <label for="title">Название задачи:</label><br>
+        <textarea id="title" rows="5" cols="50">{{ task.title }}</textarea><br><br>
+
+        <label for="description">Описание задачи:</label><br>
+        <textarea id="description" rows="5" cols="50" required>{{ task.description }}</textarea><br><br>
+
+        <label for="inputs">Публичные входы:</label><br>
+        <textarea id="inputs" rows="5" cols="50" required>{{ task.inputs }}</textarea><br><br>
+
+        <label for="outputs">Публичные выходы:</label><br>
+        <textarea id="outputs" rows="5" cols="50" required>{{ task.outputs }}</textarea><br><br>
+
+        <label for="hidden_inputs">Скрытые входы:</label><br>
+        <textarea id="hidden_inputs" rows="5" cols="50">{{ task.hidden_inputs }}</textarea><br><br>
+
+        <label for="hidden_outputs">Скрытые выходы:</label><br>
+        <textarea id="hidden_outputs" rows="5" cols="50">{{ task.hidden_outputs }}</textarea><br><br>
+
+        <input type="submit" value="Сохранить изменения">
+    </form>
+</body>
+</html>

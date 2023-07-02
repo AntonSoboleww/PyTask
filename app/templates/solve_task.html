@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ task.title }}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='codemirror.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='darcula.min.css') }}">
+    <script src="{{ url_for('static', filename='codemirror.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='python.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='jquery-3.6.0.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#solve-form').submit(function(event) {
+                event.preventDefault();
+    
+                var requestData = {
+                    'code': editor.getValue(),
+                };
+    
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url_for("solve_task_api", task_id=task.id) }}',
+                    data: JSON.stringify(requestData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        $('#result-container').html(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .text-main {
+            margin-bottom: 35px;
+            font-size: 25px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .CodeMirror {
+            width: 100%;
+            height: 300px;
+        }
+
+        .form-code {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section {
+            width: 50%;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="submit"] {
+            margin-top: 10px;
+        }
+
+        hr {
+            width: 50%
+        }
+
+        .public_input {
+            text-align: left;
+        }
+
+        .result-container {
+            font-size: 17px;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ task.title }}</h1>
+    <p><a href="{{ url_for('dashboard') }}">Все задачи</a></p>
+
+    <div style="width: 50%">
+        <h2 class="text-main">Описание задачи:</h2>
+        <p>{{ task.description }}</p>
+    </div>
+    <hr>
+    
+    <div style="width: 50%">
+        <h2 class="text-main">Пример входных и выходных значений:</h2>
+        <div class = "public_input">
+            {% for input_line, output_line in task.inputs.split('\n')|zip(task.outputs.split('\n')) %}
+            <p>{{ input_line }} -> {{ output_line }}</p>
+            {% endfor %}
+            <br>
+        </div>
+    </div>
+
+    <div class="section">
+        <form class="form-code" id="solve-form" method="POST">
+            <textarea id="visual_code" name="visual_code" onkeyup="updateHiddenText()"></textarea><br><br>
+            <textarea id="code" name="code" style="display: none;"></textarea>
+            
+            <input type="submit" value="Проверить задачу">
+        </form>
+    </div>
+
+    <pre id="result-container" class="result-container"></pre>
+
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("visual_code"), {
+          lineNumbers: true,
+          mode: "python",
+          theme: "darcula",
+          indentUnit: 4
+        });
+
+        editor.on("change", function() {
+          var codeText = editor.getValue();
+          document.getElementById("code").value = codeText;
+        });
+    </script>
+</body>
+</html>
