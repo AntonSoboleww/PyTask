@@ -11,3 +11,4 @@ Nevertheless, the project successfully fulfills its core functionality and, in m
 If you have any further questions, feel free to ask.
 
 [Check out my portfolio on HH.ru](https://hh.ru/resume/76f65f38ff08a3876a0039ed1f704f7a5a4c66)
+[My telegram](https://t.me/hex4dsu)
